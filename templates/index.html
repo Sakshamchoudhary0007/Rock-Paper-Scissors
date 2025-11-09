@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors - Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="game-wrapper">
+        <!-- Header -->
+        <header class="game-header">
+            <h1 class="game-title">ROCK • PAPER • SCISSORS</h1>
+            <p class="game-subtitle">Challenge the AI and prove your skills!</p>
+        </header>
+
+        <!-- Score Board -->
+        <div class="scoreboard">
+            <div class="score-card player-score">
+                <div class="score-label">YOU</div>
+                <div class="score-value" id="playerScore">0</div>
+            </div>
+            <div class="score-card draw-score">
+                <div class="score-label">DRAWS</div>
+                <div class="score-value" id="drawScore">0</div>
+            </div>
+            <div class="score-card computer-score">
+                <div class="score-label">COMPUTER</div>
+                <div class="score-value" id="computerScore">0</div>
+            </div>
+        </div>
+
+        <!-- Game Arena -->
+        <div class="game-container">
+            <div class="battle-arena">
+                <div class="player-choice">
+                    <div class="choice-label">YOUR CHOICE</div>
+                    <div class="choice-display" id="playerDisplay">
+                        <span class="choice-emoji">❓</span>
+                    </div>
+                </div>
+
+                <div class="vs-divider">
+                    <span class="vs-text">VS</span>
+                </div>
+
+                <div class="computer-choice">
+                    <div class="choice-label">COMPUTER'S CHOICE</div>
+                    <div class="choice-display" id="computerDisplay">
+                        <span class="choice-emoji">❓</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-container">
+                <h2 class="result-text" id="result">Choose your weapon!</h2>
+            </div>
+
+            <div class="choices">
+                <button class="choice-btn rock-btn" onclick="play('rock')" id="rockBtn">
+                    <span class="btn-emoji">🪨</span>
+                    <span class="btn-text">ROCK</span>
+                </button>
+                <button class="choice-btn paper-btn" onclick="play('paper')" id="paperBtn">
+                    <span class="btn-emoji">📄</span>
+                    <span class="btn-text">PAPER</span>
+                </button>
+                <button class="choice-btn scissors-btn" onclick="play('scissors')" id="scissorsBtn">
+                    <span class="btn-emoji">✂️</span>
+                    <span class="btn-text">SCISSORS</span>
+                </button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn reset-btn" onclick="resetGame()">
+                    <span>🔄</span> Reset Game
+                </button>
+            </div>
+        </div>
+
+        <footer class="game-footer">
+            <p>Simple • Clean • Functional</p>
+        </footer>
+    </div>
+
+    <script>
+        let playerScore = 0;
+        let computerScore = 0;
+        let drawScore = 0;
+        let isPlaying = false;
+
+        const emojiMap = { rock: '🪨', paper: '📄', scissors: '✂️' };
+
+        function disableButtons() {
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+            });
+        }
+
+        function enableButtons() {
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+            });
+        }
+
+        async function play(choice) {
+            if (isPlaying) return;
+            isPlaying = true;
+            disableButtons();
+
+            document.getElementById('playerDisplay').innerHTML = 
+                `<span class="choice-emoji animate">${emojiMap[choice]}</span>`;
+            
+            document.getElementById('computerDisplay').innerHTML = 
+                `<span class="choice-emoji thinking">🤔</span>`;
+            document.getElementById('result').innerText = "Computer is thinking...";
+            document.getElementById('result').className = "result-text thinking";
+
+            const formData = new FormData();
+            formData.append('choice', choice);
+
+            try {
+                const response = await fetch('/play', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                setTimeout(() => {
+                    document.getElementById('computerDisplay').innerHTML = 
+                        `<span class="choice-emoji animate">${emojiMap[data.computer.toLowerCase()]}</span>`;
+
+                    const resultElement = document.getElementById('result');
+                    resultElement.innerText = data.result;
+
+                    if (data.result.includes('Win')) {
+                        resultElement.className = "result-text win";
+                        playerScore++;
+                    } else if (data.result.includes('Lose') || data.result.includes('Computer Wins')) {
+                        resultElement.className = "result-text lose";
+                        computerScore++;
+                    } else {
+                        resultElement.className = "result-text draw";
+                        drawScore++;
+                    }
+
+                    document.getElementById('playerScore').innerText = playerScore;
+                    document.getElementById('computerScore').innerText = computerScore;
+                    document.getElementById('drawScore').innerText = drawScore;
+
+                    animateScore();
+                    isPlaying = false;
+                    enableButtons();
+                }, 1000);
+            } catch {
+                document.getElementById('result').innerText = "Server Error!";
+                document.getElementById('result').className = "result-text error";
+                isPlaying = false;
+                enableButtons();
+            }
+        }
+
+        function animateScore() {
+            document.querySelectorAll('.score-value').forEach(s => {
+                s.classList.add('score-update');
+                setTimeout(() => s.classList.remove('score-update'), 400);
+            });
+        }
+
+        function resetGame() {
+            playerScore = 0; computerScore = 0; drawScore = 0;
+            document.getElementById('playerScore').innerText = '0';
+            document.getElementById('computerScore').innerText = '0';
+            document.getElementById('drawScore').innerText = '0';
+            document.getElementById('playerDisplay').innerHTML = '<span class="choice-emoji">❓</span>';
+            document.getElementById('computerDisplay').innerHTML = '<span class="choice-emoji">❓</span>';
+            document.getElementById('result').innerText = 'Choose your weapon!';
+            document.getElementById('result').className = "result-text";
+            fetch('/reset', { method: 'POST' }).catch(() => {});
+        }
+    </script>
+</body>
+</html>
