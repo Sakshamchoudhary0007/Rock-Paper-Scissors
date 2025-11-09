@@ -23,26 +23,18 @@ Play directly in your browser and challenge the computer in this classic game of
 
 ## ⚙️ How to Run Locally
 
-1. **Clone the repository**
+1. Clone the repository**
    ```bash
    git clone https://github.com/Sakshamchoudhary0007/Rock-Paper-Scissors.git
    cd Rock-Paper-Scissors
 Install dependencies
-
-bash
-Copy code
 pip install -r requirements.txt
 Run the Flask app
-
-bash
-Copy code
 python app.py
 Open your browser and go to:
 👉 http://127.0.0.1:5000/
 
 📁 Project Structure
-cpp
-Copy code
 Rock-Paper-Scissors/
 │
 ├── static/
@@ -58,20 +50,11 @@ Rock-Paper-Scissors/
 To deploy this project live on Render:
 
 Login with GitHub
-
 Click “New Web Service”
-
 Select this repository
-
 In build command, use:
-
-nginx
-Copy code
 pip install -r requirements.txt
 In start command, use:
-
-nginx
-Copy code
 python app.py
 Click Deploy 🚀
 
